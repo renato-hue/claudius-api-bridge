@@ -1,0 +1,993 @@
+{
+  "projetos": [
+    {
+      "tipoProjeto": "AUDITORIA_CREDITOS",
+      "clienteId": 1773965693002,
+      "clienteNome": "MULTSERV MANUTENCAO PREDIAL LTDA",
+      "clienteCNPJ": "13.350.020/0001-34",
+      "clienteRegimeTributario": "LUCRO_REAL",
+      "prioridade": "MEDIA",
+      "dataInicio": "2026-01-01",
+      "dataPrevistaEntrega": "",
+      "etapaAtual": "Coleta de Documentos",
+      "etapasCompletas": [
+        "Prospecção",
+        "Proposta Comercial",
+        "Contrato",
+        "Procuração",
+        "Coleta de Documentos",
+        "Análise dos Documentos",
+        "Revisão da Apuração",
+        "Relatório Final",
+        "Aprovação Interna",
+        "Apresentação ao Cliente",
+        "Escrituração EFD",
+        "Compensação/Restituição",
+        "Acompanhamento",
+        "Encerramento"
+      ],
+      "status": "ENCERRADO",
+      "procuracao": {
+        "possuiProcuracao": true,
+        "dataOutorga": "2026-01-01",
+        "dataValidade": "2026-04-01",
+        "poderes": [
+          "ACESSO_ECAC",
+          "ASSINATURA_PERDCOMP",
+          "CONSULTA_SIEF",
+          "ACESSO_REGULARIZE",
+          "PROTOCOLAR_TRANSACAO",
+          "ASSINAR_TERMO"
+        ],
+        "status": "VIGENTE"
+      },
+      "responsavelPrincipal": "RVM Admin",
+      "observacoesGerais": "",
+      "periodoAuditoriaInicio": "2025-10",
+      "periodoAuditoriaFim": "2026-06",
+      "resultadosAuditoria": {
+        "totalCreditosIdentificados": 0,
+        "totalCreditosPIS": 0,
+        "totalCreditosCOFINS": 0
+      },
+      "pers": [],
+      "dcomps": [],
+      "id": 1774126688597,
+      "numeroProjeto": "#001/2026",
+      "dataRegistro": "2026-03-21",
+      "historico": [
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Criação",
+          "detalhe": "Projeto criado"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T20:58",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise dos Documentos"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Revisão da Apuração"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Relatório Final"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Apresentação ao Cliente"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Escrituração EFD"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Compensação/Restituição"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Acompanhamento"
+        },
+        {
+          "data": "2026-03-21T20:59",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Encerramento"
+        },
+        {
+          "data": "2026-03-21T21:05",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise dos Documentos"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Revisão da Apuração"
+        },
+        {
+          "data": "2026-03-21T21:29",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Relatório Final"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise dos Documentos"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Revisão da Apuração"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Relatório Final"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:30",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Contrato"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Procuração"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise dos Documentos"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Revisão da Apuração"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Relatório Final"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta Comercial"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Coleta de Documentos"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise dos Documentos"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Escrituração EFD"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Compensação/Restituição"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Encerramento"
+        },
+        {
+          "data": "2026-03-21T21:33",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Prospecção"
+        }
+      ],
+      "progressoPercent": 100,
+      "tarefas": [
+        {
+          "id": "1774131114801.2295",
+          "titulo": "Solicitar documentos ao cliente",
+          "prazo": "2026-03-24",
+          "concluida": true,
+          "dataCriacao": "2026-03-21",
+          "autoGerada": true
+        },
+        {
+          "id": "1774131121577.3384",
+          "titulo": "Solicitar documentos ao cliente",
+          "prazo": "2026-03-24",
+          "concluida": true,
+          "dataCriacao": "2026-03-21",
+          "autoGerada": true
+        },
+        {
+          "id": "1774131126781.5251",
+          "titulo": "Solicitar documentos ao cliente",
+          "prazo": "2026-03-24",
+          "concluida": true,
+          "dataCriacao": "2026-03-21",
+          "autoGerada": true
+        }
+      ],
+      "documentos": [
+        {
+          "id": "1774128720239.0154",
+          "nome": "EFD-Contribuições (.txt)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720221.1904",
+          "nome": "EFD-ICMS/IPI (.txt)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720182.9329",
+          "nome": "SPED Contábil (ECD)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720499.2341",
+          "nome": "Balancete analítico",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128721067.9019",
+          "nome": "DCTF",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720586.6074",
+          "nome": "CNPJ completo",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720253.8574",
+          "nome": "Contrato social",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128721006.0786",
+          "nome": "Notas fiscais de entrada",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720708.7969",
+          "nome": "Folha de pagamento",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720218.481",
+          "nome": "Contratos de locação",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720970.7976",
+          "nome": "Laudos de depreciação",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128720824.6704",
+          "nome": "Extratos bancários",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        }
+      ],
+      "checklistTecnico": [],
+      "ultimaAtualizacao": "2026-03-21",
+      "_stateEnteredAt": {
+        "Proposta Comercial": "2026-03-21T22:04:02.314Z",
+        "Prospecção": "2026-03-21T22:11:48.907Z",
+        "Coleta de Documentos": "2026-03-21T22:12:06.390Z"
+      },
+      "auditLog": [
+        {
+          "id": "1774130043529",
+          "timestamp": "2026-03-21T21:54:03.529Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Proposta Comercial",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130047839",
+          "timestamp": "2026-03-21T21:54:07.839Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Proposta Comercial",
+            "to": "Prospecção",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130050307",
+          "timestamp": "2026-03-21T21:54:10.307Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Proposta Comercial",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130594543",
+          "timestamp": "2026-03-21T22:03:14.543Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Proposta Comercial",
+            "to": "Prospecção",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130601949",
+          "timestamp": "2026-03-21T22:03:21.949Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Proposta Comercial",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130635323",
+          "timestamp": "2026-03-21T22:03:55.323Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Proposta Comercial",
+            "to": "Prospecção",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130637747",
+          "timestamp": "2026-03-21T22:03:57.747Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Proposta Comercial",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130640296",
+          "timestamp": "2026-03-21T22:04:00.296Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Proposta Comercial",
+            "to": "Prospecção",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774130642314",
+          "timestamp": "2026-03-21T22:04:02.314Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Proposta Comercial",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774131108907",
+          "timestamp": "2026-03-21T22:11:48.907Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Proposta Comercial",
+            "to": "Prospecção",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774131114326",
+          "timestamp": "2026-03-21T22:11:54.327Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Prospecção",
+            "to": "Coleta de Documentos",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774131120919",
+          "timestamp": "2026-03-21T22:12:00.919Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Coleta de Documentos",
+            "to": "Coleta de Documentos",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        },
+        {
+          "id": "1774131126390",
+          "timestamp": "2026-03-21T22:12:06.390Z",
+          "userId": 0,
+          "userName": "RVM Admin",
+          "action": "STATE_TRANSITION",
+          "details": {
+            "action": "STATE_TRANSITION",
+            "from": "Coleta de Documentos",
+            "to": "Coleta de Documentos",
+            "preconditionsChecked": 0,
+            "context": ""
+          },
+          "source": "USER_ACTION"
+        }
+      ]
+    },
+    {
+      "tipoProjeto": "REESTRUTURACAO_DIVIDA",
+      "clienteId": 1773965692902,
+      "clienteNome": "MULTSEG SISTEMAS DE SEGURANCA LTDA",
+      "clienteCNPJ": "04.966.422/0001-77",
+      "clienteRegimeTributario": "LUCRO_REAL",
+      "prioridade": "MEDIA",
+      "dataInicio": "2026-01-01",
+      "dataPrevistaEntrega": "",
+      "etapaAtual": "Estratégia e Aprovação",
+      "etapasCompletas": [
+        "Diagnóstico do Passivo",
+        "Análise de Elegibilidade",
+        "Estratégia e Aprovação"
+      ],
+      "status": "ATIVO",
+      "procuracao": {
+        "possuiProcuracao": true,
+        "dataOutorga": "2026-01-01",
+        "dataValidade": "2026-01-01",
+        "poderes": [
+          "ACESSO_ECAC",
+          "ASSINATURA_PERDCOMP",
+          "CONSULTA_SIEF",
+          "ACESSO_REGULARIZE"
+        ],
+        "status": "VIGENTE"
+      },
+      "responsavelPrincipal": "RVM Admin",
+      "observacoesGerais": "",
+      "orgaoNegociacao": [
+        "PGFN"
+      ],
+      "passivo": {
+        "valorTotalDebitos": 0,
+        "debitosPorTributo": [],
+        "parcelamentosVigentes": []
+      },
+      "modalidadeTransacao": {},
+      "negociacao": {},
+      "termoTransacao": {},
+      "execucaoAcordo": {},
+      "garantias": [],
+      "id": 1774126817605,
+      "numeroProjeto": "#002/2026",
+      "dataRegistro": "2026-03-21",
+      "historico": [
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Criação",
+          "detalhe": "Projeto criado"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise de Elegibilidade"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise de Elegibilidade"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Proposta ao Cliente"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Levantamento Documental"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Protocolo da Proposta"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Negociação"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Assinatura do Termo"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Execução e Monitoramento"
+        },
+        {
+          "data": "2026-03-21T21:00",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Encerramento"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Diagnóstico do Passivo"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Diagnóstico do Passivo"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise de Elegibilidade"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Diagnóstico do Passivo"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Diagnóstico do Passivo"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Diagnóstico do Passivo"
+        },
+        {
+          "data": "2026-03-21T21:31",
+          "usuario": "RVM Admin",
+          "acao": "Avançou etapa",
+          "detalhe": "Para: Análise de Elegibilidade"
+        }
+      ],
+      "progressoPercent": 30,
+      "ultimaAtualizacao": "2026-03-21",
+      "documentos": [
+        {
+          "id": "1774128652993.329",
+          "nome": "Contrato social atualizado",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128653213.3599",
+          "nome": "Extrato Situação Fiscal RFB",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652436.6628",
+          "nome": "Extrato DAU (REGULARIZE)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652595.3242",
+          "nome": "Balanço patrimonial (3 anos)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652663.684",
+          "nome": "Balancete recente",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128653171.1555",
+          "nome": "ECF (3 anos)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652779.8157",
+          "nome": "Faturamento mensal (12 meses)",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652693.8167",
+          "nome": "Relação de bens e direitos",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        },
+        {
+          "id": "1774128652867.6492",
+          "nome": "Plano de recuperação fiscal",
+          "status": "pendente",
+          "dataRecebimento": "",
+          "observacoes": ""
+        }
+      ]
+    }
+  ]
+}
