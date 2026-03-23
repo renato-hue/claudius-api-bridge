@@ -1,0 +1,126 @@
+{
+  "name": "Claudius COO — Briefing Matinal",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "triggerAtHour": 7, "triggerAtMinute": 0 }] } },
+      "name": "Cron 7h (seg-sex)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/metricas/resumo",
+        "options": { "timeout": 10000 }
+      },
+      "name": "Buscar Métricas",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/projetos?status=ATIVO",
+        "options": { "timeout": 10000 }
+      },
+      "name": "Buscar Projetos Ativos",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 200],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/alertas",
+        "options": { "timeout": 10000 }
+      },
+      "name": "Buscar Alertas",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 400],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Consolidar dados para o Claude\nconst metricas = $('Buscar Métricas').first().json;\nconst projetos = $('Buscar Projetos Ativos').first().json;\nconst alertas = $('Buscar Alertas').first().json;\n\n// Resumo dos projetos para contexto\nconst resumoProjetos = (Array.isArray(projetos) ? projetos : []).map(p => ({\n  numero: p.numeroProjeto,\n  cliente: p.clienteNome,\n  tipo: p.tipoProjeto === 'AUDITORIA_CREDITOS' ? 'Auditoria' : 'Gestão de Passivo',\n  etapa: p.etapaAtual,\n  progresso: p.progressoPercent || 0,\n  procuracaoVence: p.procuracao?.dataValidade || null,\n  valorCreditos: p.resultadosAuditoria?.totalCreditosIdentificados || 0\n}));\n\nreturn [{\n  json: {\n    contexto: {\n      metricas,\n      resumoProjetos: JSON.stringify(resumoProjetos, null, 2),\n      alertasCriticos: (Array.isArray(alertas) ? alertas : []).filter(a => a.severity === 'CRITICAL'),\n      dataHoje: new Date().toLocaleDateString('pt-BR'),\n      diaSemana: ['domingo','segunda','terça','quarta','quinta','sexta','sábado'][new Date().getDay()]\n    }\n  }\n}];"
+      },
+      "name": "Preparar Contexto",
+      "type": "n8n-nodes-base.code",
+      "position": [850, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 2000,\n  \"system\": \"Você é Claudius COO, Head de Operações IA da RVM Law Firm. Gere briefing executivo para Renato Munduruca. Seja direto, objetivo. Máximo 25 linhas. Formate para WhatsApp (use *negrito* e bullet points). Datas: dd/mm/aaaa. Valores: R$ 000.000,00. Nunca mencionar honorários.\",\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Dados do escritório hoje:\\n\" + JSON.stringify({{ $json.contexto }}) + \"\\n\\nGere o briefing matinal.\"\n  }]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "name": "Claude - Gerar Briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Extrair texto da resposta do Claude\nconst response = $input.first().json;\nconst briefingText = response.content?.[0]?.text || 'Briefing não gerado.';\n\n// Quebrar em chunks se > 4096 chars (limite WhatsApp)\nconst chunks = [];\nif (briefingText.length <= 4096) {\n  chunks.push(briefingText);\n} else {\n  const parts = briefingText.split('\\n\\n');\n  let current = '';\n  for (const part of parts) {\n    if ((current + '\\n\\n' + part).length > 4000) {\n      chunks.push(current.trim());\n      current = part;\n    } else {\n      current += '\\n\\n' + part;\n    }\n  }\n  if (current.trim()) chunks.push(current.trim());\n}\n\nreturn chunks.map((text, i) => ({ json: { text, part: i + 1, total: chunks.length } }));"
+      },
+      "name": "Formatar WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "position": [1250, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $env.RENATO_PHONE }}\",\n  \"text\": \"{{ $json.text }}\"\n}"
+      },
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"type\": \"BRIEFING_ENVIADO\", \"canal\": \"whatsapp\", \"destinatario\": \"renato\" }"
+      },
+      "name": "Registrar Evento",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1650, 300],
+      "typeVersion": 4.2
+    }
+  ],
+  "connections": {
+    "Cron 7h (seg-sex)": { "main": [[{ "node": "Buscar Métricas", "type": "main", "index": 0 }]] },
+    "Buscar Métricas": { "main": [[{ "node": "Buscar Projetos Ativos", "type": "main", "index": 0 }, { "node": "Buscar Alertas", "type": "main", "index": 0 }]] },
+    "Buscar Projetos Ativos": { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Buscar Alertas": { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Preparar Contexto": { "main": [[{ "node": "Claude - Gerar Briefing", "type": "main", "index": 0 }]] },
+    "Claude - Gerar Briefing": { "main": [[{ "node": "Formatar WhatsApp", "type": "main", "index": 0 }]] },
+    "Formatar WhatsApp": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Evento", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Claudius COO" }]
+}

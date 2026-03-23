@@ -1,0 +1,121 @@
+{
+  "name": "Claudius COO — Radar de Prazos",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "triggerAtHour": 6 }, { "triggerAtHour": 8 }, { "triggerAtHour": 10 }, { "triggerAtHour": 12 }, { "triggerAtHour": 14 }, { "triggerAtHour": 16 }, { "triggerAtHour": 18 }, { "triggerAtHour": 20 }, { "triggerAtHour": 22 }] } },
+      "name": "Cron 2h (06-22h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/projetos", "options": { "timeout": 10000 } },
+      "name": "Buscar Projetos",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/claudius/memory", "options": { "timeout": 10000 } },
+      "name": "Buscar Memória",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 450],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "/* Radar de Prazos — calcular prazos críticos\n * Inspirado em Linear SLA breach escalation:\n * monitorar a cada 2h, escalar quando necessário */\n\nconst projetos = $('Buscar Projetos').first().json || [];\nconst memoria = $('Buscar Memória').first().json || {};\nconst notificados = memoria.notificacoesEnviadas || {};\nconst agora = new Date();\nconst alertas = [];\n\n// SLA por etapa (dias)\nconst SLA_MAP = {\n  'Proposta Comercial': 14, 'Contrato': 7, 'Procuração': 5,\n  'Coleta de Documentos': 21, 'Análise dos Documentos': 10,\n  'Revisão da Apuração': 15, 'Relatório Final': 7,\n  'Aprovação Interna': 3, 'Apresentação ao Cliente': 14,\n  'Escrituração EFD': 30,\n  'Análise de Elegibilidade': 10, 'Estratégia e Aprovação': 3,\n  'Proposta ao Cliente': 14, 'Levantamento Documental': 21,\n  'Protocolo da Proposta': 7, 'Assinatura do Termo': 7\n};\n\nconst projs = Array.isArray(projetos) ? projetos : [];\n\nprojs.forEach(p => {\n  if (p.status === 'ENCERRADO' || p.status === 'CANCELADO') return;\n  const nome = p.clienteNome || p.numeroProjeto || '';\n  const notifKey = `${p.id}_${p.etapaAtual}`;\n  const ultimaNotif = notificados[notifKey];\n  const horas6 = 6 * 60 * 60 * 1000;\n  const jaNotificado = ultimaNotif && (agora - new Date(ultimaNotif.dataEnvio)) < horas6;\n\n  // 1. SLA da etapa atual\n  const sla = SLA_MAP[p.etapaAtual];\n  if (sla && p._stateEnteredAt && p._stateEnteredAt[p.etapaAtual]) {\n    const dias = Math.floor((agora - new Date(p._stateEnteredAt[p.etapaAtual])) / 86400000);\n    if (dias > sla && !jaNotificado) {\n      alertas.push({\n        severity: 'CRITICAL', tipo: 'SLA_VENCIDO',\n        projetoId: p.id, cliente: nome, etapa: p.etapaAtual,\n        diasAtraso: dias - sla, slaDias: sla,\n        msg: `SLA VENCIDO — ${nome} está em \"${p.etapaAtual}\" há ${dias} dias (SLA: ${sla}d, atraso: ${dias-sla}d)`\n      });\n    } else if (dias > sla * 0.7 && !jaNotificado) {\n      alertas.push({\n        severity: 'HIGH', tipo: 'SLA_RISCO',\n        projetoId: p.id, cliente: nome, etapa: p.etapaAtual,\n        diasRestantes: sla - dias, slaDias: sla,\n        msg: `SLA em risco — ${nome} em \"${p.etapaAtual}\" há ${dias}d (SLA: ${sla}d, restam ${sla-dias}d)`\n      });\n    }\n  }\n\n  // 2. Procuração vencendo\n  if (p.procuracao && p.procuracao.dataValidade) {\n    const diasProc = Math.ceil((new Date(p.procuracao.dataValidade) - agora) / 86400000);\n    if (diasProc <= 0) {\n      alertas.push({ severity: 'CRITICAL', tipo: 'PROCURACAO_EXPIRADA', projetoId: p.id, cliente: nome, msg: `Procuração de ${nome} EXPIRADA` });\n    } else if (diasProc <= 15) {\n      alertas.push({ severity: 'HIGH', tipo: 'PROCURACAO_VENCENDO', projetoId: p.id, cliente: nome, diasRestantes: diasProc, msg: `Procuração de ${nome} vence em ${diasProc} dias` });\n    }\n  }\n\n  // 3. PER sem resposta > 320 dias (alerta preventivo antes de 360)\n  if (p.pers && p.pers.length) {\n    p.pers.forEach(per => {\n      if (per.status === 'EM_ANALISE' && per.dataProtocolo) {\n        const diasPER = Math.floor((agora - new Date(per.dataProtocolo)) / 86400000);\n        if (diasPER > 360) {\n          alertas.push({ severity: 'CRITICAL', tipo: 'PER_360', projetoId: p.id, cliente: nome, perNumero: per.numeroPER, dias: diasPER,\n            msg: `PER ${per.numeroPER} de ${nome} sem deferimento há ${diasPER} dias (>360d). SELIC incide (art. 7º-A IN 2055/2021).` });\n        } else if (diasPER > 320) {\n          alertas.push({ severity: 'HIGH', tipo: 'PER_320', projetoId: p.id, cliente: nome, perNumero: per.numeroPER, dias: diasPER,\n            msg: `PER ${per.numeroPER} de ${nome} sem resposta há ${diasPER} dias. Limite de 360 dias se aproxima.` });\n        }\n      }\n    });\n  }\n\n  // 4. Parcelas em atraso (Gestão de Passivo) — Portaria PGFN 838/2023\n  if (p.tipoProjeto === 'REESTRUTURACAO_DIVIDA' && p.execucaoAcordo && p.execucaoAcordo.pagamentos) {\n    const atrasadas = p.execucaoAcordo.pagamentos.filter(pg => pg.status === 'ATRASADO').length;\n    if (atrasadas >= 3) {\n      alertas.push({ severity: 'CRITICAL', tipo: 'RESCISAO_IMINENTE', projetoId: p.id, cliente: nome, parcelas: atrasadas,\n        msg: `RESCISÃO IMINENTE — ${nome}: ${atrasadas} parcelas em atraso. Impugnar em 30 dias (Portaria PGFN 838/2023).` });\n    } else if (atrasadas >= 2) {\n      alertas.push({ severity: 'HIGH', tipo: 'RESCISAO_RISCO', projetoId: p.id, cliente: nome, parcelas: atrasadas,\n        msg: `RISCO DE RESCISÃO — ${nome}: ${atrasadas} parcelas em atraso.` });\n    }\n  }\n});\n\n// Separar por severidade\nconst criticos = alertas.filter(a => a.severity === 'CRITICAL');\nconst altos = alertas.filter(a => a.severity === 'HIGH');\n\nreturn [{ json: { alertas, criticos, altos, total: alertas.length, temCritico: criticos.length > 0, temAlto: altos.length > 0 } }];"
+      },
+      "name": "Calcular Prazos",
+      "type": "n8n-nodes-base.code",
+      "position": [700, 350],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{ $json.temCritico || $json.temAlto }}", "value2": true }] }
+      },
+      "name": "Há alertas?",
+      "type": "n8n-nodes-base.if",
+      "position": [900, 350],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+          { "name": "anthropic-version", "value": "2023-06-01" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 1000,\n  \"system\": \"Você é Claudius COO da RVM Law Firm. Redija um alerta urgente para WhatsApp. Seja direto, cite artigo de lei quando relevante. Máximo 15 linhas.\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"Alertas identificados:\\n\" + JSON.stringify({{ $json.alertas }}) + \"\\n\\nRedija a mensagem de alerta.\"}]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "name": "Claude - Redigir Alerta",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 250],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const response = $input.first().json;\nconst text = response.content?.[0]?.text || 'Alerta do Claudius COO';\nreturn [{ json: { text } }];"
+      },
+      "name": "Extrair Texto",
+      "type": "n8n-nodes-base.code",
+      "position": [1300, 250],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $env.RENATO_PHONE }}\",\n  \"text\": \"🔴 *CLAUDIUS COO — ALERTA*\\n\\n{{ $json.text }}\"\n}"
+      },
+      "name": "WhatsApp Alerta",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1500, 250],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/claudius/memory",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"notificacoesEnviadas\": {{ JSON.stringify(Object.fromEntries($('Calcular Prazos').first().json.alertas.map(a => [a.projetoId + '_' + a.etapa, { dataEnvio: new Date().toISOString(), tipo: a.tipo }]))) }}\n}"
+      },
+      "name": "Atualizar Memória",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1500, 400],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {},
+      "name": "Sem alertas",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1100, 450],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Cron 2h (06-22h)": { "main": [[{ "node": "Buscar Projetos", "type": "main", "index": 0 }, { "node": "Buscar Memória", "type": "main", "index": 0 }]] },
+    "Buscar Projetos": { "main": [[{ "node": "Calcular Prazos", "type": "main", "index": 0 }]] },
+    "Buscar Memória": { "main": [[{ "node": "Calcular Prazos", "type": "main", "index": 0 }]] },
+    "Calcular Prazos": { "main": [[{ "node": "Há alertas?", "type": "main", "index": 0 }]] },
+    "Há alertas?": { "main": [[{ "node": "Claude - Redigir Alerta", "type": "main", "index": 0 }], [{ "node": "Sem alertas", "type": "main", "index": 0 }]] },
+    "Claude - Redigir Alerta": { "main": [[{ "node": "Extrair Texto", "type": "main", "index": 0 }]] },
+    "Extrair Texto": { "main": [[{ "node": "WhatsApp Alerta", "type": "main", "index": 0 }, { "node": "Atualizar Memória", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Claudius COO" }]
+}

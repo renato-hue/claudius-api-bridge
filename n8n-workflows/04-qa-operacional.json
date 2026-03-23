@@ -1,0 +1,141 @@
+{
+  "name": "Claudius COO — Q&A Operacional (WhatsApp)",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "whatsapp-incoming", "options": {} },
+      "name": "WhatsApp Incoming",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "typeVersion": 2,
+      "webhookId": "whatsapp-incoming"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "/* Verificar remetente autorizado e extrair texto */\nconst body = $input.first().json;\nconst remetente = body.data?.key?.remoteJid || body.sender || '';\nconst autorizados = (process.env.RENATO_PHONE || '').split(',').concat((process.env.EQUIPE_PHONES || '').split(','));\nconst autorizado = autorizados.some(n => remetente.includes(n.replace('@c.us','')));\nconst texto = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || body.text || '';\n\nreturn [{ json: { remetente, autorizado, texto, isAudio: !!body.data?.message?.audioMessage } }];"
+      },
+      "name": "Verificar Remetente",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{ $json.autorizado }}", "value2": true }] }
+      },
+      "name": "Autorizado?",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/metricas/resumo", "options": { "timeout": 10000 } },
+      "name": "Métricas",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 200],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/projetos", "options": { "timeout": 10000 } },
+      "name": "Projetos",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 350],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/claudius/memory", "options": { "timeout": 10000 } },
+      "name": "Memória",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 500],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "/* Preparar contexto completo para Claude — Notion AI style\n * Carregar memória + dados + histórico de conversa */\nconst metricas = $('Métricas').first().json;\nconst projetos = $('Projetos').first().json || [];\nconst memoria = $('Memória').first().json || {};\nconst pergunta = $('Verificar Remetente').first().json.texto;\n\n// Resumo compacto dos projetos para o contexto\nconst resumo = (Array.isArray(projetos) ? projetos : []).map(p => (\n  `#${p.numeroProjeto} ${p.clienteNome} | ${p.etapaAtual} | ${p.status} | ` +\n  `Créditos: R$ ${(p.resultadosAuditoria?.totalCreditosIdentificados || 0).toLocaleString('pt-BR')} | ` +\n  `Procuração: ${p.procuracao?.dataValidade || 'N/A'}`\n)).join('\\n');\n\n// Histórico de conversa (últimas 10)\nconst historico = (memoria.conversaAtual?.mensagens || []).slice(-10);\n\nreturn [{ json: { pergunta, metricas, resumoProjetos: resumo, historico, remetente: $('Verificar Remetente').first().json.remetente } }];"
+      },
+      "name": "Preparar Contexto",
+      "type": "n8n-nodes-base.code",
+      "position": [1100, 350],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+          { "name": "anthropic-version", "value": "2023-06-01" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 1500,\n  \"system\": \"Você é Claudius COO da RVM Law Firm. Responda perguntas operacionais com base nos dados dos projetos. Seja direto, preciso, use dados reais. Formate para WhatsApp (máx 20 linhas, *negrito*, bullet points). Datas: dd/mm/aaaa. Valores: R$ 000.000,00.\\n\\nESTADO DO ESCRITÓRIO:\\n\" + JSON.stringify({{ $json.metricas }}) + \"\\n\\nPROJETOS ATIVOS:\\n{{ $json.resumoProjetos }}\",\n  \"messages\": {{ JSON.stringify($json.historico.concat([{role:'user',content:$json.pergunta}])) }}\n}",
+        "options": { "timeout": 30000 }
+      },
+      "name": "Claude Responde",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1350, 350],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const r = $input.first().json;\nconst resposta = r.content?.[0]?.text || 'Não consegui processar sua pergunta.';\nconst pergunta = $('Preparar Contexto').first().json.pergunta;\nconst remetente = $('Preparar Contexto').first().json.remetente;\n\nreturn [{ json: { resposta, pergunta, remetente } }];"
+      },
+      "name": "Extrair Resposta",
+      "type": "n8n-nodes-base.code",
+      "position": [1550, 350],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.remetente }}\",\n  \"text\": \"{{ $json.resposta }}\"\n}"
+      },
+      "name": "Enviar Resposta",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1750, 350],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/claudius/memory",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversaAtual\": {\n    \"ultimaMensagem\": \"{{ new Date().toISOString() }}\",\n    \"mensagens\": {{ JSON.stringify(($('Preparar Contexto').first().json.historico || []).concat([{role:'user',content:$json.pergunta},{role:'assistant',content:$json.resposta}]).slice(-10)) }}\n  }\n}"
+      },
+      "name": "Salvar Conversa",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1750, 500],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {},
+      "name": "Não autorizado",
+      "type": "n8n-nodes-base.noOp",
+      "position": [850, 600],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "WhatsApp Incoming": { "main": [[{ "node": "Verificar Remetente", "type": "main", "index": 0 }]] },
+    "Verificar Remetente": { "main": [[{ "node": "Autorizado?", "type": "main", "index": 0 }]] },
+    "Autorizado?": { "main": [[{ "node": "Métricas", "type": "main", "index": 0 }, { "node": "Projetos", "type": "main", "index": 0 }, { "node": "Memória", "type": "main", "index": 0 }], [{ "node": "Não autorizado", "type": "main", "index": 0 }]] },
+    "Métricas": { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Projetos": { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Memória": { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Preparar Contexto": { "main": [[{ "node": "Claude Responde", "type": "main", "index": 0 }]] },
+    "Claude Responde": { "main": [[{ "node": "Extrair Resposta", "type": "main", "index": 0 }]] },
+    "Extrair Resposta": { "main": [[{ "node": "Enviar Resposta", "type": "main", "index": 0 }, { "node": "Salvar Conversa", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Claudius COO" }]
+}

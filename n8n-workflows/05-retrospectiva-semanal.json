@@ -1,0 +1,119 @@
+{
+  "name": "Claudius COO — Retrospectiva Semanal",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "triggerAtDay": 5, "triggerAtHour": 18 }] } },
+      "name": "Cron Sexta 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/projetos", "options": { "timeout": 10000 } },
+      "name": "Todos Projetos",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 250],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": { "url": "http://api-bridge:3001/claudius/memory", "options": { "timeout": 10000 } },
+      "name": "Memória",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 400],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "/* Retrospectiva Semanal — Spotify Squad Health Check style\n * Calcular métricas da semana sobre TODOS os projetos */\n\nconst projetos = $('Todos Projetos').first().json || [];\nconst memoria = $('Memória').first().json || {};\nconst agora = new Date();\nconst inicioSemana = new Date(agora);\ninicioSemana.setDate(agora.getDate() - 7);\n\nconst projs = Array.isArray(projetos) ? projetos : [];\n\n// Projetos que avançaram de etapa esta semana\nconst avancaram = projs.filter(p => {\n  return (p.auditLog || []).some(log =>\n    log.action === 'STATE_TRANSITION' && new Date(log.timestamp) > inicioSemana\n  );\n});\n\n// Transições desta semana\nconst transicoesSemana = [];\nprojs.forEach(p => {\n  (p.auditLog || []).forEach(log => {\n    if (log.action === 'STATE_TRANSITION' && new Date(log.timestamp) > inicioSemana) {\n      transicoesSemana.push({ projeto: p.numeroProjeto, cliente: p.clienteNome, de: log.details?.from, para: log.details?.to });\n    }\n  });\n});\n\n// Tarefas criadas vs concluídas\nlet tarefasCriadas = 0, tarefasConcluidas = 0;\nprojs.forEach(p => {\n  (p.tarefas || []).forEach(t => {\n    if (t.dataCriacao && new Date(t.dataCriacao) > inicioSemana) tarefasCriadas++;\n    if (t.concluida) tarefasConcluidas++;\n  });\n});\n\n// Créditos identificados esta semana (projetos com checklist atualizado)\nconst creditosSemana = projs.reduce((s, p) => {\n  return s + ((p.resultadosAuditoria || {}).totalCreditosIdentificados || 0);\n}, 0);\n\n// SLAs vencidos\nconst slasVencidos = projs.filter(p => {\n  if (!p._stateEnteredAt || !p._stateEnteredAt[p.etapaAtual]) return false;\n  const SLA_MAP = {'Proposta Comercial':14,'Contrato':7,'Procuração':5,'Coleta de Documentos':21,'Análise dos Documentos':10,'Revisão da Apuração':15,'Relatório Final':7,'Aprovação Interna':3,'Apresentação ao Cliente':14,'Escrituração EFD':30};\n  const sla = SLA_MAP[p.etapaAtual];\n  if (!sla) return false;\n  return Math.floor((agora - new Date(p._stateEnteredAt[p.etapaAtual])) / 86400000) > sla;\n}).length;\n\n// Gargalo: etapa onde mais projetos estão parados\nconst etapaCounts = {};\nprojs.filter(p => p.status === 'ATIVO' || p.status === 'EM_EXECUCAO').forEach(p => {\n  etapaCounts[p.etapaAtual] = (etapaCounts[p.etapaAtual] || 0) + 1;\n});\nconst gargalo = Object.entries(etapaCounts).sort((a, b) => b[1] - a[1])[0];\n\nconst dados = {\n  periodo: inicioSemana.toLocaleDateString('pt-BR') + ' a ' + agora.toLocaleDateString('pt-BR'),\n  projetosAvancaram: avancaram.length,\n  transicoes: transicoesSemana,\n  tarefasCriadas,\n  tarefasConcluidas,\n  creditosTotalCarteira: creditosSemana,\n  slasVencidos,\n  gargalo: gargalo ? { etapa: gargalo[0], qtd: gargalo[1] } : null,\n  totalAtivos: projs.filter(p => p.status === 'ATIVO' || p.status === 'EM_EXECUCAO').length,\n  totalEncerrados: projs.filter(p => p.status === 'ENCERRADO').length,\n  padroesHistoricos: memoria.padroes || {}\n};\n\nreturn [{ json: dados }];"
+      },
+      "name": "Calcular Métricas",
+      "type": "n8n-nodes-base.code",
+      "position": [700, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+          { "name": "anthropic-version", "value": "2023-06-01" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 3000,\n  \"system\": \"Você é Claudius COO. Gere a retrospectiva semanal. DOIS formatos: (1) WhatsApp max 30 linhas com *negrito*, (2) Email completo com análise detalhada. Valores: R$ 000.000,00. Datas: dd/mm/aaaa.\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"Dados da semana:\\n\" + JSON.stringify({{ $json }}) + \"\\n\\nGere: VERSÃO WHATSAPP e VERSÃO EMAIL separadas por ---EMAIL---\"}]\n}",
+        "options": { "timeout": 45000 }
+      },
+      "name": "Claude Retrospectiva",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [950, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const r = $input.first().json;\nconst texto = r.content?.[0]?.text || '';\nconst partes = texto.split('---EMAIL---');\nconst whatsapp = (partes[0] || texto).trim();\nconst email = (partes[1] || '').trim() || whatsapp;\nreturn [{ json: { whatsapp, email } }];"
+      },
+      "name": "Separar Formatos",
+      "type": "n8n-nodes-base.code",
+      "position": [1150, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $env.RENATO_PHONE }}\",\n  \"text\": \"{{ $json.whatsapp }}\"\n}"
+      },
+      "name": "WhatsApp Retro",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1400, 200],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_USER }}",
+        "toEmail": "={{ $env.SMTP_TO }}",
+        "subject": "=Claudius COO — Retrospectiva Semanal {{ new Date().toLocaleDateString('pt-BR') }}",
+        "text": "={{ $json.email }}",
+        "options": {}
+      },
+      "name": "Email Retro",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [1400, 400],
+      "typeVersion": 2.1,
+      "credentials": { "smtp": { "id": "smtp_rvm", "name": "SMTP RVM" } }
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/claudius/memory",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"briefings\": { \"ultimaRetrospectiva\": \"{{ new Date().toISOString() }}\" },\n  \"padroes\": { \"gargaloSemana\": {{ JSON.stringify($('Calcular Métricas').first().json.gargalo) }}, \"slasVencidosSemana\": {{ $('Calcular Métricas').first().json.slasVencidos }} }\n}"
+      },
+      "name": "Atualizar Memória",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1600, 300],
+      "typeVersion": 4.2
+    }
+  ],
+  "connections": {
+    "Cron Sexta 18h": { "main": [[{ "node": "Todos Projetos", "type": "main", "index": 0 }, { "node": "Memória", "type": "main", "index": 0 }]] },
+    "Todos Projetos": { "main": [[{ "node": "Calcular Métricas", "type": "main", "index": 0 }]] },
+    "Memória": { "main": [[{ "node": "Calcular Métricas", "type": "main", "index": 0 }]] },
+    "Calcular Métricas": { "main": [[{ "node": "Claude Retrospectiva", "type": "main", "index": 0 }]] },
+    "Claude Retrospectiva": { "main": [[{ "node": "Separar Formatos", "type": "main", "index": 0 }]] },
+    "Separar Formatos": { "main": [[{ "node": "WhatsApp Retro", "type": "main", "index": 0 }, { "node": "Email Retro", "type": "main", "index": 0 }]] },
+    "WhatsApp Retro": { "main": [[{ "node": "Atualizar Memória", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Claudius COO" }]
+}

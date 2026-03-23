@@ -1,0 +1,134 @@
+{
+  "name": "Claudius COO — Monitor de Eventos",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "plataforma-events", "options": {} },
+      "name": "Webhook Eventos",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "typeVersion": 2,
+      "webhookId": "plataforma-events"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "/* Classificar evento recebido da plataforma */\nconst event = $input.first().json;\nconst tipo = event.type || event.action || 'UNKNOWN';\nlet urgencia = 'INFO';\nlet notificar = false;\nlet mensagemDireta = '';\n\nswitch(tipo) {\n  case 'STATE_TRANSITION':\n    // Notificar se entrou em etapa que requer atenção\n    if (event.to === 'Aprovação Interna' || event.to === 'Estratégia e Aprovação') {\n      urgencia = 'HIGH';\n      notificar = true;\n      mensagemDireta = `📋 *Aguardando sua aprovação*\\n\\nProjeto: ${event.clienteNome || ''}\\nEtapa: ${event.to}\\nTransição: ${event.from} → ${event.to}`;\n    }\n    break;\n  case 'ALERT_FIRED':\n    if (event.severity === 'CRITICAL') {\n      urgencia = 'CRITICAL';\n      notificar = true;\n    }\n    break;\n  case 'DCOMP_NAO_HOMOLOGADA':\n    urgencia = 'HIGH';\n    notificar = true;\n    break;\n  case 'PER_DEFERIDO':\n    urgencia = 'INFO';\n    notificar = true;\n    mensagemDireta = `✅ *PER Deferido*\\n\\n${event.clienteNome || ''} — PER ${event.perNumero || ''} deferido. Valor: R$ ${event.valor || '—'}`;\n    break;\n}\n\nreturn [{ json: { ...event, urgencia, notificar, mensagemDireta, tipo } }];"
+      },
+      "name": "Classificar Evento",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{ $json.notificar }}", "value2": true }] }
+      },
+      "name": "Notificar?",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": { "string": [{ "value1": "={{ $json.mensagemDireta }}", "operation": "isNotEmpty" }] }
+      },
+      "name": "Tem msg direta?",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $env.RENATO_PHONE }}\",\n  \"text\": \"{{ $json.mensagemDireta }}\"\n}"
+      },
+      "name": "WhatsApp Direto",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 150],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+          { "name": "anthropic-version", "value": "2023-06-01" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 800,\n  \"system\": \"Você é Claudius COO. Analise o evento e sugira ação. Máximo 10 linhas WhatsApp.\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"Evento: \" + JSON.stringify({{ $json }})}]\n}",
+        "options": { "timeout": 20000 }
+      },
+      "name": "Claude Analisa",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const r = $input.first().json;\nreturn [{ json: { text: r.content?.[0]?.text || 'Evento processado.' } }];"
+      },
+      "name": "Extrair",
+      "type": "n8n-nodes-base.code",
+      "position": [1300, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=http://evolution-api:8080/message/sendText/claudius",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $env.RENATO_PHONE }}\",\n  \"text\": \"🔔 *CLAUDIUS COO*\\n\\n{{ $json.text }}\"\n}"
+      },
+      "name": "WhatsApp Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1500, 300],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://api-bridge:3001/claudius/mensagem",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tipo\": \"{{ $('Classificar Evento').first().json.tipo }}\",\n  \"urgencia\": \"{{ $('Classificar Evento').first().json.urgencia }}\",\n  \"cliente\": \"{{ $('Classificar Evento').first().json.clienteNome || '' }}\",\n  \"mensagem\": \"Evento processado\"\n}"
+      },
+      "name": "Registrar Feed",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1500, 450],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {},
+      "name": "Ignorar",
+      "type": "n8n-nodes-base.noOp",
+      "position": [850, 450],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Webhook Eventos": { "main": [[{ "node": "Classificar Evento", "type": "main", "index": 0 }]] },
+    "Classificar Evento": { "main": [[{ "node": "Notificar?", "type": "main", "index": 0 }]] },
+    "Notificar?": { "main": [[{ "node": "Tem msg direta?", "type": "main", "index": 0 }], [{ "node": "Ignorar", "type": "main", "index": 0 }]] },
+    "Tem msg direta?": { "main": [[{ "node": "WhatsApp Direto", "type": "main", "index": 0 }], [{ "node": "Claude Analisa", "type": "main", "index": 0 }]] },
+    "Claude Analisa": { "main": [[{ "node": "Extrair", "type": "main", "index": 0 }]] },
+    "Extrair": { "main": [[{ "node": "WhatsApp Claude", "type": "main", "index": 0 }, { "node": "Registrar Feed", "type": "main", "index": 0 }]] },
+    "WhatsApp Direto": { "main": [[{ "node": "Registrar Feed", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Claudius COO" }]
+}
