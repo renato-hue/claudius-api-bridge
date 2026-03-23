@@ -226,6 +226,130 @@ app.post('/claudius/memory', (req, res) => {
   res.json({ ok: true });
 });
 
+// === IMPORTAÇÃO AUTOMÁTICA (Claudius importa documentos do Google Drive) ===
+
+// Fila de importação — documentos a processar
+app.post('/importar/documento', (req, res) => {
+  /* Recebe documento classificado pelo Claude + dados extraídos.
+     Salva no store para que a plataforma consuma via polling ou SSE. */
+  const store = readStore('import_queue');
+  const list = store._list || [];
+  const id = `import_${Date.now()}`;
+  const entry = {
+    id,
+    ...req.body, // tipo, dados extraídos, arquivo original
+    status: 'PENDENTE', // PENDENTE → IMPORTADO → VERIFICADO → ERRO
+    criadoEm: new Date().toISOString(),
+    source: 'CLAUDIUS_DRIVE'
+  };
+  list.push(entry);
+  store._list = list;
+  writeStore('import_queue', store);
+
+  // Inserir diretamente nos dados da plataforma se for parcelamento
+  if (req.body.tipo === 'EXTRATO_PARCELAMENTO') {
+    const tpData = readStore('platform_data');
+    const tp = tpData.tp_data || { clientes: [], parcelamentos: [], usuarios: [] };
+
+    const d = req.body.dados;
+    if (d && d.cnpj && d.numNegociacao) {
+      // Verificar duplicata
+      const existe = tp.parcelamentos.find(p => p.numNegociacao === d.numNegociacao);
+      if (!existe) {
+        // Criar/encontrar cliente
+        const cnpjClean = (d.cnpj || '').replace(/\D/g, '');
+        let cli = tp.clientes.find(c => (c.cnpj || '').replace(/\D/g, '') === cnpjClean);
+        if (!cli) {
+          cli = { id: Date.now(), nome: d.nome || 'Importado por Claudius', cnpj: d.cnpj };
+          tp.clientes.push(cli);
+        }
+        // Criar parcelamento
+        tp.parcelamentos.push({
+          id: Date.now() + 1,
+          clienteId: cli.id,
+          orgao: d.orgao || 'RFB',
+          modalidade: d.modalidade || '',
+          numNegociacao: d.numNegociacao,
+          numParcelas: d.numParcelas || 0,
+          valorConsolidado: d.valorConsolidado || 0,
+          valorParcela: d.valorParcela || 0,
+          situacao: d.situacao || 'Em parcelamento',
+          dataInicio: d.dataInicio || '',
+          formaPagamento: d.formaPagamento || 'DARF',
+          parcelas: d.parcelas || []
+        });
+        tpData.tp_data = tp;
+        writeStore('platform_data', tpData);
+        entry.status = 'IMPORTADO';
+        entry.parcelamentoId = Date.now() + 1;
+        console.log(`[IMPORT] Parcelamento ${d.numNegociacao} importado para ${d.nome}`);
+      } else {
+        entry.status = 'DUPLICADO';
+        entry.mensagem = 'Parcelamento já existe: ' + d.numNegociacao;
+      }
+    }
+  }
+
+  // Atualizar fila
+  writeStore('import_queue', store);
+  broadcastEvent({ type: 'DOCUMENT_IMPORTED', id, tipo: req.body.tipo, status: entry.status });
+  res.json({ ok: true, id, status: entry.status });
+});
+
+// Verificar importação — compara dados extraídos vs salvos
+app.post('/verificar/importacao/:id', (req, res) => {
+  const store = readStore('import_queue');
+  const list = store._list || [];
+  const entry = list.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Importação não encontrada' });
+
+  const verificacao = req.body; // { campos_corretos: [...], campos_errados: [...], score: 0-100 }
+  entry.verificacao = verificacao;
+  entry.status = verificacao.score >= 90 ? 'VERIFICADO' : 'ERRO_VERIFICACAO';
+  entry.verificadoEm = new Date().toISOString();
+  writeStore('import_queue', store);
+
+  if (entry.status === 'ERRO_VERIFICACAO') {
+    broadcastEvent({
+      type: 'IMPORT_VERIFICATION_FAILED',
+      id: entry.id,
+      campos_errados: verificacao.campos_errados,
+      mensagem: `Importação ${entry.id} falhou na verificação (score: ${verificacao.score}/100)`
+    });
+  }
+
+  res.json({ ok: true, status: entry.status, score: verificacao.score });
+});
+
+// Fila de importação — consultar status
+app.get('/importar/fila', (req, res) => {
+  const store = readStore('import_queue');
+  res.json((store._list || []).slice(-20));
+});
+
+// Auto-fix: Claudius reporta bug para Claude Code corrigir
+app.post('/autofix/reportar', (req, res) => {
+  const store = readStore('autofix_queue');
+  const list = store._list || [];
+  const id = `fix_${Date.now()}`;
+  list.push({
+    id,
+    ...req.body, // descricao, arquivo, funcao, esperado, obtido
+    status: 'PENDENTE',
+    criadoEm: new Date().toISOString()
+  });
+  store._list = list;
+  writeStore('autofix_queue', store);
+  console.log(`[AUTOFIX] Bug reportado: ${req.body.descricao}`);
+  res.json({ ok: true, id });
+});
+
+// Auto-fix: consultar fila
+app.get('/autofix/fila', (req, res) => {
+  const store = readStore('autofix_queue');
+  res.json((store._list || []).slice(-10));
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'Claudius API Bridge', uptime: process.uptime() });
